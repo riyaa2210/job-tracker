@@ -1,0 +1,43 @@
+# Render Blueprint — deploys the API + PostgreSQL in one click.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Usage:
+#   1. Push this repo to GitHub
+#   2. Go to https://dashboard.render.com/blueprints and click "New Blueprint"
+#   3. Connect the repo — Render reads this file and creates everything automatically
+
+databases:
+  - name: jobtracker-db
+    databaseName: jobtracker
+    user: jobtracker
+    plan: free          # 1 GB storage, 256 MB RAM — free forever
+    region: oregon
+
+services:
+  - type: web
+    name: jobtracker-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    region: oregon
+    plan: free          # 512 MB RAM, spins down after 15 min inactivity
+    healthCheckPath: /health
+
+    envVars:
+      # Render auto-injects the internal DB URL from the database above
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobtracker-db
+          property: connectionString
+
+      # !! CHANGE THIS — generate with: python -c "import secrets; print(secrets.token_hex(32))"
+      - key: JWT_SECRET
+        generateValue: true   # Render generates a secure random value automatically
+
+      - key: ENVIRONMENT
+        value: production
+
+      # Set this AFTER you deploy the frontend on Vercel.
+      # Format: https://your-app.vercel.app
+      # You can also add multiple origins comma-separated.
+      - key: CORS_ORIGINS
+        value: https://your-frontend.vercel.app
