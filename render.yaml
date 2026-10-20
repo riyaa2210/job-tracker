@@ -18,6 +18,7 @@ services:
     name: jobtracker-api
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     region: oregon
     plan: free          # 512 MB RAM, spins down after 15 min inactivity
     healthCheckPath: /health
